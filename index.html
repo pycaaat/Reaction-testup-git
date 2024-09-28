@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reaction Test</title>
+    <style>
+        .button-style {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: black;
+            font-weight: bold;
+            background-color: white;
+            border: 2px solid black;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .button-style.hover {
+            background-color: gray;
+        }
+        .disabled {
+            pointer-events: none;
+            opacity: 0.5;
+        }
+        #imageDisplay {
+            max-width: 100%;
+            height: auto;
+            display: none;
+            cursor: pointer;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 20px;
+            color: red;
+        }
+    </style>
+</head>
+<body>   
+    <button id="startTiming" class="button-style">Start</button>
+    <button id="options" class="button-style">Options</button>
+    <button id="help" class="button-style">Help</button>
+    <img id="imageDisplay" src="" alt="Timer Images" style="display:none;"/>
+    <div id="result">Reaction Time: <span id="reactionTime">0</span> ms</div>
+    <script>
+        window.onload = function(){
+            alert("Reaction Test v1.0\nPress \"Start\" to begin the test, if you are unsure of the actions and rules, please press \"Help\".");
+        };
+
+        function addClickEvent(buttonId) {
+            document.getElementById(buttonId).addEventListener("click", function() {
+                this.classList.add("hover");
+                setTimeout(() => {
+                    this.classList.remove("hover");
+                }, 120);
+            });
+        }
+
+        addClickEvent("startTiming");
+        addClickEvent("options");
+        addClickEvent("help");
+
+        document.getElementById("startTiming").addEventListener("click", function() {
+            this.classList.add("disabled");
+            document.getElementById("options").classList.add("disabled");
+            document.getElementById("help").classList.add("disabled");
+
+            var images = ["timed3.jpg", "timed2.jpg", "timed1.jpg"];
+            var imgDisplay = document.getElementById("imageDisplay");
+
+            function showNextImage(index) {
+                if (index < images.length) {
+                    imgDisplay.src = images[index];
+                    imgDisplay.style.display = "block";
+                    setTimeout(function() {
+                        imgDisplay.src = "";
+                        imgDisplay.style.display = "none";
+                        showNextImage(index + 1);
+                    }, 1000);
+                } else {
+                    imgDisplay.src = "play.jpg";
+                    imgDisplay.style.display = "block";
+                    imgDisplay.onclick = function() {
+                        const reactionTime = performance.now() - startTime;
+                        document.getElementById("reactionTime").textContent = reactionTime;
+                        fetch('/api/get-server-time')
+                            .then(response => response.json())
+                            .then(data => {
+                                const serverTime = data.serverTime;
+                                const clientReceiveTime = startTime;
+                                const clientClickTime = performance.now();
+                                const totalDelay = clientClickTime - clientReceiveTime;
+                                const serverDelay = clientReceiveTime - serverTime;
+                                document.getElementById("result").innerHTML += '<br>Client Delay: ' + totalDelay + ' ms, Server Delay: ' + serverDelay + ' ms';
+                            })
+                            .catch(error => console.error('Error:', error));
+                        imgDisplay.src = "stop.jpg";
+                        imgDisplay.onclick = null;
+                        document.getElementById("startTiming").classList.remove("disabled");
+                        document.getElementById("options").classList.remove("disabled");
+                        document.getElementById("help").classList.remove("disabled");
+                    };
+                    startTime = performance.now();
+                }
+            }
+
+            showNextImage(0);
+        });
+    </script>
+</body>
+</html>
