@@ -1,0 +1,4 @@
+Reaction Testup is a program to test the response. After clicking the start button, you can wait three seconds to press the play button to test how many milliseconds your response is.
+Please change the corresponding file name to the file name in the open source before using it to ensure normal use.
+This is a front-end development program, please make sure you have the correct environment when you run it.
+In addition, this app will always be updated.now is v1.0.0 .
